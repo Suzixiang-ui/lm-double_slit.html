@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>杨氏双缝干涉实验台</title>
+<style>
+body{margin:0;background:#08131b;color:white;font-family:"Microsoft YaHei"}
+header{padding:16px 25px;background:#061019;color:#54ddff;font-size:26px}
+.main{display:grid;grid-template-columns:300px 1fr 260px;gap:12px;padding:12px}
+.box{background:#122633;border-radius:10px;padding:15px}
+label{display:block;margin:20px 0}
+input{width:100%}
+.value{float:right;color:#55e5ff}
+button{background:#00a9e5;color:white;border:0;border-radius:18px;padding:10px}
+canvas{width:100%;background:#020608;border-radius:8px}
+</style>
+</head>
+<body>
+<header>杨氏双缝干涉实验台 · 条纹间距探究</header>
+
+<div class="main">
+<div class="box">
+<h3>参数调节</h3>
+
+<label>双缝间距 d
+<span class="value" id="dv"></span>
+<input id="d" type="range" min="0.1" max="1" step="0.01" value="0.35">
+</label>
+
+<label>缝到屏距离 D
+<span class="value" id="Dv"></span>
+<input id="D" type="range" min="1" max="5" step="0.1" value="2.8">
+</label>
+
+<label>入射波长 λ
+<span class="value" id="lv"></span>
+<input id="L" type="range" min="400" max="700" value="537">
+</label>
+
+<button onclick="pause=!pause">暂停/继续</button>
+<p>● 单色光</p>
+<p>○ 白光(复色)</p>
+</div>
+
+<div class="box">
+<canvas id="cv" width="1000" height="600"></canvas>
+</div>
+
+<div class="box">
+<h3>实验结果</h3>
+<p id="result"></p>
+<hr>
+<p>亮纹条件：</p>
+<p>δ=kλ</p>
+<p>暗纹条件：</p>
+<p>δ=(k+1/2)λ</p>
+</div>
+</div>
+
+<script>
+const c=document.getElementById("cv");
+const ctx=c.getContext("2d");
+
+let d=document.getElementById("d");
+let D=document.getElementById("D");
+let L=document.getElementById("L");
+let pause=false;
+let t=0;
+
+function spacing(){
+ return L.value*1e-9*D.value/(d.value*1e-3)*1000;
+}
+
+function update(){
+dv.innerHTML=d.value+" mm";
+Dv.innerHTML=D.value+" m";
+lv.innerHTML=L.value+" nm";
+
+result.innerHTML=
+"波长 λ："+L.value+" nm<br>"+
+"双缝距离 d："+d.value+" mm<br>"+
+"屏距 D："+D.value+" m<br><br>"+
+"<b>条纹间距 Δx = "+spacing().toFixed(2)+" mm</b>";
+}
+
+function draw(){
+
+ctx.clearRect(0,0,1000,600);
+
+// laser source
+ctx.fillStyle="#00ff66";
+ctx.beginPath();
+ctx.arc(80,300,22,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="white";
+ctx.fillText("激光 λ="+L.value+"nm",35,350);
+
+// single slit
+ctx.strokeStyle="#58dfff";
+ctx.lineWidth=8;
+ctx.beginPath();
+ctx.moveTo(260,120);
+ctx.lineTo(260,260);
+ctx.moveTo(260,340);
+ctx.lineTo(260,480);
+ctx.stroke();
+
+ctx.fillText("单缝",235,100);
+
+// beam to slit
+ctx.strokeStyle="#39ff55";
+ctx.lineWidth=3;
+ctx.beginPath();
+ctx.moveTo(105,300);
+ctx.lineTo(260,300);
+ctx.stroke();
+
+// double slit
+ctx.strokeStyle="#58dfff";
+ctx.lineWidth=8;
+ctx.beginPath();
+ctx.moveTo(500,120);
+ctx.lineTo(500,250);
+ctx.moveTo(500,350);
+ctx.lineTo(500,480);
+ctx.stroke();
+
+ctx.fillText("双缝 A",520,250);
+ctx.fillText("双缝 B",520,350);
+
+// two beams after double slit
+ctx.strokeStyle="#ffd84d";
+ctx.lineWidth=3;
+
+ctx.beginPath();
+ctx.moveTo(500,250);
+ctx.lineTo(820,260);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(500,350);
+ctx.lineTo(820,340);
+ctx.stroke();
+
+// screen
+for(let y=80;y<520;y++){
+ let y0=y-300;
+ let x=spacing()*12;
+ let intensity=Math.pow(Math.cos(Math.PI*y0/x),2);
+ let v=Math.floor(intensity*255);
+ ctx.fillStyle="rgb("+v+","+v+","+v+")";
+ ctx.fillRect(850,y,80,1);
+}
+
+ctx.strokeStyle="#ffdf55";
+ctx.strokeRect(850,80,80,440);
+
+ctx.fillStyle="white";
+ctx.fillText("光屏",870,560);
+
+if(!pause)t+=1;
+
+requestAnimationFrame(draw);
+update();
+}
+
+[d,D,L].forEach(e=>e.oninput=update);
+draw();
+</script>
+</body>
+</html>
